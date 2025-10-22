@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider } from '@/components/layout/sidebar-provider';
+import { TaskProvider } from '@/contexts/TaskProvider';
 
 export const metadata: Metadata = {
   title: 'TaskPilot',
@@ -26,15 +27,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <AppSidebar />
-            <div className="flex flex-1 flex-col">
-              <AppHeader />
-              <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <TaskProvider>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <AppSidebar />
+              <div className="flex flex-1 flex-col">
+                <AppHeader />
+                <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        </TaskProvider>
         <Toaster />
       </body>
     </html>
