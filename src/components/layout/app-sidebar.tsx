@@ -20,6 +20,7 @@ import {
 import { useSidebar } from './sidebar-provider';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { usePathname } from 'next/navigation';
 
 const navItems = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -32,6 +33,8 @@ const navItems = [
 
 function SidebarContent() {
   const { isCollapsed } = useSidebar();
+  const pathname = usePathname();
+  
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b px-4">
@@ -57,6 +60,7 @@ function SidebarContent() {
                   variant="ghost"
                   className={cn(
                     'w-full justify-start gap-3 rounded-lg px-3 py-2 text-primary-foreground/80 transition-all hover:bg-primary-foreground/10 hover:text-primary-foreground',
+                    pathname === item.href && 'bg-primary-foreground/10 text-primary-foreground',
                     isCollapsed ? 'justify-center' : ''
                   )}
                   asChild
