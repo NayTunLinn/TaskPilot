@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { useTheme } from 'next-themes';
 
 export default function SettingsPage() {
