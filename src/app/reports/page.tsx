@@ -24,7 +24,9 @@ import { users } from '@/lib/data';
 import type { Task, TaskPriority, TaskStatus, User } from '@/lib/types';
 import { format } from 'date-fns';
 import { FileDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 const priorityColors: Record<TaskPriority, string> = {
   low: 'bg-chart-2',
@@ -34,7 +36,6 @@ const priorityColors: Record<TaskPriority, string> = {
 
 export default function ReportsPage() {
   const { tasks } = useTasks();
-  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string | 'all'>('all');
@@ -49,12 +50,49 @@ export default function ReportsPage() {
     });
   }, [tasks, statusFilter, priorityFilter, assigneeFilter]);
 
-  const handleExport = (format: 'PDF' | 'Excel') => {
-    toast({
-      title: 'Exporting Report',
-      description: `Your report is being generated as a ${format} file.`,
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [['Task', 'Project', 'Status', 'Priority', 'Due Date', 'Assignees']],
+      body: filteredTasks.map(task => [
+        task.title,
+        task.project.name,
+        task.status,
+        task.priority,
+        format(new Date(task.dueDate), 'MMM d, yyyy'),
+        task.assignees.map(a => a.name).join(', '),
+      ]),
     });
-    // In a real app, you would implement the export logic here.
+    doc.save('task_report.pdf');
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Task', 'Project', 'Status', 'Priority', 'Due Date', 'Assignees'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredTasks.map(task =>
+        [
+          `"${task.title.replace(/"/g, '""')}"`,
+          `"${task.project.name}"`,
+          task.status,
+          task.priority,
+          format(new Date(task.dueDate), 'yyyy-MM-dd'),
+          `"${task.assignees.map(a => a.name).join(', ')}"`,
+        ].join(',')
+      ),
+    ];
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.href) {
+      URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', 'task_report.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
 
@@ -111,11 +149,11 @@ export default function ReportsPage() {
             </Select>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button variant="outline" onClick={() => handleExport('PDF')}>
+            <Button variant="outline" onClick={handleExportPDF}>
               <FileDown className="mr-2 h-4 w-4" />
               Export PDF
             </Button>
-            <Button variant="outline" onClick={() => handleExport('Excel')}>
+            <Button variant="outline" onClick={handleExportCSV}>
               <FileDown className="mr-2 h-4 w-4" />
               Export Excel
             </Button>
