@@ -23,11 +23,11 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const navItems = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '#', icon: CheckSquare, label: 'My Tasks' },
-  { href: '#', icon: Calendar, label: 'Calendar' },
-  { href: '#', icon: BarChart3, label: 'Reports' },
-  { href: '#', icon: Folder, label: 'Projects' },
-  { href: '#', icon: Users, label: 'Teams' },
+  { href: '/my-tasks', icon: CheckSquare, label: 'My Tasks' },
+  { href: '/calendar', icon: Calendar, label: 'Calendar' },
+  { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/projects', icon: Folder, label: 'Projects' },
+  { href: '/teams', icon: Users, label: 'Teams' },
 ];
 
 function SidebarContent() {
