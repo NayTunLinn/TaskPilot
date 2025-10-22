@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, orderBy, query } from 'firebase/firestore';
-import { UserProfile } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -15,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CreateUserButton } from '@/components/users/create-user-button';
 
 export default function UsersPage() {
   const firestore = useFirestore();
@@ -33,7 +33,7 @@ export default function UsersPage() {
           <h1 className="text-3xl font-bold">Users</h1>
           <p className="text-muted-foreground">Manage user profiles.</p>
         </div>
-        {/* Placeholder for Add User button */}
+        <CreateUserButton />
       </div>
 
       <Card>
