@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -18,9 +19,13 @@ import { TeamCard } from '@/components/teams/team-card';
 
 export default function TeamsPage() {
   const firestore = useFirestore();
-  const { data: teams, loading } = useCollection(
-    firestore ? query(collection(firestore, 'teams'), orderBy('name')) : null
-  );
+
+  const teamsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'teams'), orderBy('name'));
+  }, [firestore]);
+
+  const { data: teams, loading } = useCollection(teamsQuery);
 
   return (
     <div className="flex flex-col gap-8">

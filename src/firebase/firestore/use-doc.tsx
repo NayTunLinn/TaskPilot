@@ -18,20 +18,25 @@ import {
  *
  * @param ref - A Firestore `DocumentReference` object pointing to the document
  * you want to fetch. If `null` is provided, the hook will not fetch any data
- * and will return a `null` data state.
+ * and will return a `null` data state. It is recommended to memoize the
+ * reference object to prevent re-renders.
  * @returns An object containing the `data` from the document, a `loading`
-* state, and any `error` that occurred.
+ * state, and any `error` that occurred.
  *
  * @example
  * ```tsx
  * import { useDoc } from '@/firebase/firestore/use-doc';
  * import { doc } from 'firebase/firestore';
  * import { useFirestore } from '@/firebase/provider';
+ * import { useMemo } from 'react';
  *
  * function MyComponent({ documentId }) {
  *   const firestore = useFirestore();
  *
- *   const docRef = firestore ? doc(firestore, 'my-collection', documentId) : null;
+ *   const docRef = useMemo(() => {
+ *     if (!firestore) return null;
+ *     return doc(firestore, 'my-collection', documentId);
+ *   }, [firestore, documentId]);
  *
  *   const { data, loading, error } = useDoc(docRef);
  *

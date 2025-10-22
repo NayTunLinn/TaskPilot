@@ -24,6 +24,7 @@ import {
  * @param query - A Firestore `Query` or `CollectionReference` object. The hook
  * will listen to the documents that match this query. If `null` is provided,
  * the hook will not fetch any data and will return a `null` data state.
+ * It is recommended to memoize the query object to prevent re-renders.
  * @returns An object containing the `data` from the collection, a `loading`
  * state, and any `error` that occurred.
  *
@@ -32,17 +33,19 @@ import {
  * import { useCollection } from '@/firebase/firestore/use-collection';
  * import { collection, query, where } from 'firebase/firestore';
  * import { useFirestore } from '@/firebase/provider';
+ * import { useMemo } from 'react';
  *
  * function MyComponent() {
  *   const firestore = useFirestore();
  *   const [showCompleted, setShowCompleted] = useState(false);
  *
- *   const tasksQuery = firestore
- *     ? query(
- *         collection(firestore, 'tasks'),
- *         where('completed', '==', showCompleted)
- *       )
- *     : null;
+ *   const tasksQuery = useMemo(() => {
+ *      if (!firestore) return null;
+ *      return query(
+ *          collection(firestore, 'tasks'),
+ *          where('completed', '==', showCompleted)
+ *      )
+ *   }, [firestore, showCompleted]);
  *
  *   const { data: tasks, loading, error } = useCollection(tasksQuery);
  *
