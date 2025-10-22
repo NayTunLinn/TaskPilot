@@ -9,6 +9,7 @@ import {
   Users,
   CheckSquare,
   ChevronLeft,
+  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +30,7 @@ const navItems = [
   { href: '/reports', icon: BarChart3, label: 'Reports' },
   { href: '/projects', icon: Folder, label: 'Projects' },
   { href: '/teams', icon: Users, label: 'Teams' },
+  { href: '/users', icon: User, label: 'Users' },
 ];
 
 function SidebarContent() {
