@@ -13,9 +13,20 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
+import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // or a loading skeleton
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Settings</h1>
