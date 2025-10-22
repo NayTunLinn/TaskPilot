@@ -1,13 +1,16 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
-export interface User {
+export interface UserProfile {
   id: string;
   name: string;
   initials: string;
   avatarUrl: string;
-  email?: string; // Members will have emails
+  email?: string;
 }
+
+export interface User extends UserProfile {}
+
 
 export interface Project {
   id: string;
@@ -18,7 +21,7 @@ export interface Team {
   id: string;
   name: string;
   description: string;
-  members: User[];
+  members: UserProfile[];
 }
 
 export interface Task {

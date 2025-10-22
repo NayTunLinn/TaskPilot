@@ -9,37 +9,19 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-
-const teams = [
-    {
-        id: 'team-1',
-        name: 'Frontend Developers',
-        description: 'Responsible for the user interface and user experience.',
-        members: [
-            { id: 'user-1', name: 'Jane Doe', initials: 'JD', avatarUrl: '...' },
-            { id: 'user-2', name: 'John Smith', initials: 'JS', avatarUrl: '...' },
-        ]
-    },
-    {
-        id: 'team-2',
-        name: 'Backend Engineers',
-        description: 'Manages the server-side logic and database.',
-        members: [
-             { id: 'user-3', name: 'Alex Brown', initials: 'AB', avatarUrl: '...' },
-        ]
-    },
-    {
-        id: 'team-3',
-        name: 'Marketing',
-        description: 'In charge of product promotion and communication.',
-        members: [
-            { id: 'user-4', name: 'Sarah Connor', initials: 'SC', avatarUrl: '...' },
-        ]
-    }
-]
-
+import { useCollection } from '@/firebase';
+import { collection, orderBy, query } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { Team } from '@/lib/types';
+import { CreateTeamButton } from '@/components/teams/create-team-button';
+import { TeamCard } from '@/components/teams/team-card';
 
 export default function TeamsPage() {
+  const firestore = useFirestore();
+  const { data: teams, loading } = useCollection(
+    firestore ? query(collection(firestore, 'teams'), orderBy('name')) : null
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
@@ -49,32 +31,37 @@ export default function TeamsPage() {
             Manage your teams and team members.
           </p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2" />
-          Add Team
-        </Button>
+        <CreateTeamButton />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {teams.map(team => (
-          <Card key={team.id}>
-            <CardHeader>
-              <CardTitle>{team.name}</CardTitle>
-              <CardDescription>{team.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex -space-x-2">
-                 <p className="text-sm text-muted-foreground">{team.members.length} members</p>
-              </div>
-               <div className="mt-4 flex justify-end gap-2">
-                <Button variant="outline" size="sm">
-                  Manage
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {loading && (
+         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="h-6 w-3/4 rounded-md bg-muted animate-pulse" />
+                <div className="h-4 w-full rounded-md bg-muted animate-pulse" />
+              </CardHeader>
+              <CardContent>
+                 <div className="h-4 w-1/4 rounded-md bg-muted animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!loading && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {teams?.map(team => (
+            <TeamCard key={team.id} team={team as Team} />
+          ))}
+        </div>
+      )}
+       {!loading && teams?.length === 0 && (
+          <div className="col-span-full text-center text-muted-foreground">
+            <p>No teams found. Click "Add Team" to create one.</p>
+          </div>
+        )}
     </div>
   );
 }
