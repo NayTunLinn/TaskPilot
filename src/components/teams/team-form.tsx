@@ -59,6 +59,7 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
           title: 'Team Updated',
           description: `"${data.name}" has been updated.`,
         });
+        onFinished();
       } else {
         await addDoc(collection(firestore, 'teams'), {
           ...data,
@@ -68,8 +69,8 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
           title: 'Team Created',
           description: `Team "${data.name}" has been created.`,
         });
+        onFinished();
       }
-      onFinished();
     } catch (error: any) {
         console.error("Error saving team: ", error);
         toast({
