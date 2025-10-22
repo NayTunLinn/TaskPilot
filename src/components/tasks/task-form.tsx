@@ -248,6 +248,19 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
                                     : [...field.value, user.id];
                                   field.onChange(newSelection);
                                 }}
+                                onPointerDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    const newSelection = isSelected
+                                      ? field.value.filter((id) => id !== user.id)
+                                      : [...field.value, user.id];
+                                    field.onChange(newSelection);
+                                  }
+                                }}
                               >
                                 <Checkbox checked={isSelected} className="mr-2" />
                                 {user.name}
