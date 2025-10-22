@@ -89,18 +89,20 @@ export function TaskCard({ task }: TaskCardProps) {
           </CardContent>
         </Card>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[625px]">
-        <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
-          <DialogDescription>
-            Update the details of your task. Click save when you're done.
-          </DialogDescription>
-        </DialogHeader>
-        <TaskForm
-          taskToEdit={task}
-          onFinished={() => setIsEditDialogOpen(false)}
-        />
-      </DialogContent>
+      {isEditDialogOpen && (
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>
+              Update the details of your task. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <TaskForm
+            taskToEdit={task}
+            onFinished={() => setIsEditDialogOpen(false)}
+          />
+        </DialogContent>
+      )}
     </Dialog>
   );
 }

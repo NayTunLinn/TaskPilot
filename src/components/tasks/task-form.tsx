@@ -28,10 +28,10 @@ import { CalendarIcon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useTasks } from '@/contexts/TaskProvider';
-import { projects, users } from '@/lib/data';
+import { projects } from '@/lib/data';
 import { TagInput } from './tag-input';
 import { suggestTags } from '@/ai/flows/ai-suggested-tags';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Task, User } from '@/lib/types';
 import {
@@ -44,6 +44,8 @@ import {
 } from '@/components/ui/command';
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 const taskFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -71,6 +73,13 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const isEditMode = !!taskToEdit;
+  const firestore = useFirestore();
+
+  const usersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+  const { data: users, loading: loadingUsers } = useCollection(usersQuery);
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -119,6 +128,8 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
   };
 
   function onSubmit(data: TaskFormValues) {
+    if (!users) return;
+
     const selectedProject = projects.find(p => p.id === data.projectId);
     const selectedAssignees = users.filter(u => data.assigneeIds.includes(u.id));
 
@@ -133,7 +144,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         ...data,
         id: taskToEdit.id,
         project: selectedProject,
-        assignees: selectedAssignees,
+        assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
       };
       updateTask(updatedTask);
@@ -146,7 +157,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         id: `task-${Date.now()}`,
         ...data,
         project: selectedProject,
-        assignees: selectedAssignees,
+        assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
       };
       addTask(newTask);
@@ -297,7 +308,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
                   <FormControl>
                     <Button variant="outline" role="combobox" className={cn('justify-between', !field.value?.length && 'text-muted-foreground')}>
                       <div className="flex flex-wrap gap-1">
-                        {field.value?.length > 0
+                        {field.value?.length > 0 && users
                           ? users
                               .filter(u => field.value.includes(u.id))
                               .map(u => <Badge key={u.id} variant="secondary">{u.name}</Badge>)
@@ -312,7 +323,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
                     <CommandList>
                       <CommandEmpty>No users found.</CommandEmpty>
                       <CommandGroup>
-                        {users.map(user => {
+                        {users?.map(user => {
                           const isSelected = field.value.includes(user.id);
                           return (
                             <CommandItem
