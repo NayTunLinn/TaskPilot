@@ -6,11 +6,19 @@ export interface User {
   name: string;
   initials: string;
   avatarUrl: string;
+  email?: string; // Members will have emails
 }
 
 export interface Project {
   id: string;
   name:string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  members: User[];
 }
 
 export interface Task {
