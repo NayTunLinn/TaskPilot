@@ -33,7 +33,7 @@ import { TagInput } from './tag-input';
 import { suggestTags } from '@/ai/flows/ai-suggested-tags';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { User } from '@/lib/types';
+import { Task, User } from '@/lib/types';
 import {
   Command,
   CommandEmpty,
@@ -49,6 +49,7 @@ const taskFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
   description: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high']),
+  status: z.enum(['todo', 'in-progress', 'review', 'done']),
   projectId: z.string().min(1, 'Please select a project.'),
   assigneeIds: z.array(z.string()).min(1, 'Please select at least one assignee.'),
   dueDate: z.date({
@@ -59,21 +60,35 @@ const taskFormSchema = z.object({
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
 
-export function TaskForm({ onFinished }: { onFinished: () => void }) {
-  const { addTask } = useTasks();
+interface TaskFormProps {
+  onFinished: () => void;
+  taskToEdit?: Task;
+}
+
+export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
+  const { addTask, updateTask } = useTasks();
   const { toast } = useToast();
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const isEditMode = !!taskToEdit;
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      priority: 'medium',
-      assigneeIds: [],
-      tags: [],
-    },
+    defaultValues: isEditMode
+      ? {
+          ...taskToEdit,
+          projectId: taskToEdit.project.id,
+          assigneeIds: taskToEdit.assignees.map(a => a.id),
+          dueDate: new Date(taskToEdit.dueDate),
+        }
+      : {
+          title: '',
+          description: '',
+          priority: 'medium',
+          status: 'todo',
+          assigneeIds: [],
+          tags: [],
+        },
   });
 
   const handleSuggestTags = async () => {
@@ -112,23 +127,35 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
       return;
     }
 
-    const newTask = {
-      id: `task-${Date.now()}`,
-      title: data.title,
-      description: data.description || '',
-      priority: data.priority as 'low' | 'medium' | 'high',
-      status: 'todo' as const,
-      dueDate: data.dueDate.toISOString(),
-      project: selectedProject,
-      assignees: selectedAssignees,
-      tags: data.tags || [],
-    };
+    if (isEditMode) {
+      const updatedTask: Task = {
+        ...taskToEdit,
+        ...data,
+        id: taskToEdit.id,
+        project: selectedProject,
+        assignees: selectedAssignees,
+        dueDate: data.dueDate.toISOString(),
+      };
+      updateTask(updatedTask);
+      toast({
+        title: 'Task Updated',
+        description: `"${data.title}" has been updated.`,
+      });
+    } else {
+      const newTask: Task = {
+        id: `task-${Date.now()}`,
+        ...data,
+        project: selectedProject,
+        assignees: selectedAssignees,
+        dueDate: data.dueDate.toISOString(),
+      };
+      addTask(newTask);
+      toast({
+        title: 'Task Created',
+        description: `"${data.title}" has been added to the board.`,
+      });
+    }
 
-    addTask(newTask);
-    toast({
-      title: 'Task Created',
-      description: `"${data.title}" has been added to the board.`,
-    });
     onFinished();
   }
 
@@ -164,6 +191,29 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="todo">To Do</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="priority"
             render={({ field }) => (
               <FormItem>
@@ -184,6 +234,9 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="projectId"
@@ -208,75 +261,6 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
               </FormItem>
             )}
           />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="assigneeIds"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Assignees</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button variant="outline" role="combobox" className={cn('justify-between', !field.value?.length && 'text-muted-foreground')}>
-                        <div className="flex flex-wrap gap-1">
-                          {field.value?.length > 0
-                            ? users
-                                .filter(u => field.value.includes(u.id))
-                                .map(u => <Badge key={u.id} variant="secondary">{u.name}</Badge>)
-                            : 'Select assignees'}
-                        </div>
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[250px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search users..." />
-                      <CommandList>
-                        <CommandEmpty>No users found.</CommandEmpty>
-                        <CommandGroup>
-                          {users.map(user => {
-                            const isSelected = field.value.includes(user.id);
-                            return (
-                              <CommandItem
-                                key={user.id}
-                                onSelect={() => {
-                                  const newSelection = isSelected
-                                    ? field.value.filter(id => id !== user.id)
-                                    : [...field.value, user.id];
-                                  field.onChange(newSelection);
-                                }}
-                                onPointerDown={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    const newSelection = isSelected
-                                      ? field.value.filter((id) => id !== user.id)
-                                      : [...field.value, user.id];
-                                    field.onChange(newSelection);
-                                  }
-                                }}
-                              >
-                                <Checkbox checked={isSelected} className="mr-2" />
-                                {user.name}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="dueDate"
@@ -301,6 +285,72 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="assigneeIds"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Assignees</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button variant="outline" role="combobox" className={cn('justify-between', !field.value?.length && 'text-muted-foreground')}>
+                      <div className="flex flex-wrap gap-1">
+                        {field.value?.length > 0
+                          ? users
+                              .filter(u => field.value.includes(u.id))
+                              .map(u => <Badge key={u.id} variant="secondary">{u.name}</Badge>)
+                          : 'Select assignees'}
+                      </div>
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[250px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search users..." />
+                    <CommandList>
+                      <CommandEmpty>No users found.</CommandEmpty>
+                      <CommandGroup>
+                        {users.map(user => {
+                          const isSelected = field.value.includes(user.id);
+                          return (
+                            <CommandItem
+                              key={user.id}
+                              onSelect={() => {
+                                const newSelection = isSelected
+                                  ? field.value.filter(id => id !== user.id)
+                                  : [...field.value, user.id];
+                                field.onChange(newSelection);
+                              }}
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  const newSelection = isSelected
+                                    ? field.value.filter((id) => id !== user.id)
+                                    : [...field.value, user.id];
+                                  field.onChange(newSelection);
+                                }
+                              }}
+                            >
+                              <Checkbox checked={isSelected} className="mr-2" />
+                              {user.name}
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -330,7 +380,7 @@ export function TaskForm({ onFinished }: { onFinished: () => void }) {
           )}
         />
         <div className="flex justify-end">
-          <Button type="submit">Create Task</Button>
+          <Button type="submit">{isEditMode ? 'Save Changes' : 'Create Task'}</Button>
         </div>
       </form>
     </Form>

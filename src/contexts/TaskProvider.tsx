@@ -8,6 +8,7 @@ import { produce } from 'immer';
 interface TaskContextType {
   tasks: Task[];
   addTask: (task: Task) => void;
+  updateTask: (task: Task) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -20,6 +21,15 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const addTask = (task: Task) => {
     setTasks(produce(draft => {
       draft.unshift(task);
+    }));
+  };
+  
+  const updateTask = (updatedTask: Task) => {
+    setTasks(produce(draft => {
+        const taskIndex = draft.findIndex(t => t.id === updatedTask.id);
+        if (taskIndex !== -1) {
+            draft[taskIndex] = updatedTask;
+        }
     }));
   };
 
@@ -48,7 +58,7 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   }, [simulateTaskProgress]);
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask }}>
+    <TaskContext.Provider value={{ tasks, addTask, updateTask }}>
       {children}
     </TaskContext.Provider>
   );
