@@ -12,8 +12,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { useTheme } from 'next-themes';
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Settings</h1>
@@ -77,7 +80,11 @@ export default function SettingsPage() {
                   Toggle between light and dark themes.
                 </span>
               </Label>
-              <Switch id="dark-mode" defaultChecked disabled />
+               <Switch
+                id="dark-mode"
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              />
             </div>
           </CardContent>
         </Card>

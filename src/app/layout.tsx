@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider } from '@/components/layout/sidebar-provider';
 import { TaskProvider } from '@/contexts/TaskProvider';
+import { ThemeProvider } from '@/components/layout/theme-provider';
 
 export const metadata: Metadata = {
   title: 'TaskPilot',
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -27,18 +28,25 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
-        <TaskProvider>
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <AppSidebar />
-              <div className="flex flex-1 flex-col">
-                <AppHeader />
-                <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TaskProvider>
+            <SidebarProvider>
+              <div className="flex min-h-screen w-full">
+                <AppSidebar />
+                <div className="flex flex-1 flex-col">
+                  <AppHeader />
+                  <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
-        </TaskProvider>
-        <Toaster />
+            </SidebarProvider>
+          </TaskProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
