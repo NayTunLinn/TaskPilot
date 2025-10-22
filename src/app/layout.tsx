@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider } from '@/components/layout/sidebar-provider';
 import { TaskProvider } from '@/contexts/TaskProvider';
 import { ThemeProvider } from '@/components/layout/theme-provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'TaskPilot',
@@ -34,17 +35,19 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TaskProvider>
-            <SidebarProvider>
-              <div className="flex min-h-screen w-full">
-                <AppSidebar />
-                <div className="flex flex-1 flex-col">
-                  <AppHeader />
-                  <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+          <FirebaseClientProvider>
+            <TaskProvider>
+              <SidebarProvider>
+                <div className="flex min-h-screen w-full">
+                  <AppSidebar />
+                  <div className="flex flex-1 flex-col">
+                    <AppHeader />
+                    <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+                  </div>
                 </div>
-              </div>
-            </SidebarProvider>
-          </TaskProvider>
+              </SidebarProvider>
+            </TaskProvider>
+          </FirebaseClientProvider>
           <Toaster />
         </ThemeProvider>
       </body>
