@@ -42,6 +42,8 @@ import { useTasks } from '@/contexts/TaskProvider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { Progress } from '../ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { Checkbox } from '../ui/checkbox';
 
 interface TaskCardProps {
   task: Task;
@@ -113,34 +115,56 @@ export function TaskCard({ task }: TaskCardProps) {
         )}
       >
         <div
-          className="cursor-pointer p-3"
-          onClick={() => setIsEditDialogOpen(true)}
+          className="p-3"
         >
-          <CardHeader className="p-0 pb-2">
-            <CardTitle className="text-sm font-medium leading-snug">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 pt-2">
-            {tags?.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-1">
-                {tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
-             {subTasks && subTasks.length > 0 && (
-              <div className="my-3 space-y-2">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>{completedSubTasks}/{subTasks.length} Sub-tasks</span>
-                    </div>
+          <div className="cursor-pointer" onClick={() => setIsEditDialogOpen(true)}>
+            <CardHeader className="p-0 pb-2">
+              <CardTitle className="text-sm font-medium leading-snug">
+                {title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 pt-2">
+              {tags?.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1">
+                  {tags.map(tag => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
-                <Progress value={subTaskProgress} className="h-2" />
-              </div>
+              )}
+            </CardContent>
+          </div>
+            
+             {subTasks && subTasks.length > 0 && (
+                <Collapsible>
+                    <div className="my-3 space-y-2">
+                        <CollapsibleTrigger className="w-full">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground hover:bg-muted p-1 rounded-sm">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>{completedSubTasks}/{subTasks.length} Sub-tasks</span>
+                                </div>
+                                <ChevronDown className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-180" />
+                            </div>
+                        </CollapsibleTrigger>
+                        <Progress value={subTaskProgress} className="h-2" />
+                        <CollapsibleContent className="space-y-2 pt-2">
+                           {subTasks.map(subtask => (
+                             <div key={subtask.id} className="flex items-center gap-2 text-sm p-1 rounded-sm hover:bg-muted/50">
+                               <Checkbox 
+                                 id={`subtask-${subtask.id}`}
+                                 checked={subtask.completed} 
+                                 onCheckedChange={() => handleSubTaskToggle(subtask.id)}
+                               />
+                               <label htmlFor={`subtask-${subtask.id}`} className={cn("flex-1", subtask.completed && "line-through text-muted-foreground")}>
+                                {subtask.title}
+                               </label>
+                             </div>
+                           ))}
+                        </CollapsibleContent>
+                    </div>
+                </Collapsible>
             )}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -225,7 +249,6 @@ export function TaskCard({ task }: TaskCardProps) {
                 </Popover>
               </div>
             </div>
-          </CardContent>
         </div>
         <div className="border-t">
           <DropdownMenu>
