@@ -25,7 +25,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { TaskForm } from '../tasks/task-form';
 import {
@@ -57,14 +56,6 @@ const priorityIcons: Record<TaskPriority, React.ElementType> = {
   low: Flag,
 };
 
-const statusIcons: Record<TaskStatus, React.ElementType> = {
-  todo: CircleDotDashed,
-  'in-progress': CircleDotDashed,
-  review: CircleDotDashed,
-  done: CircleDotDashed,
-};
-
-
 export function TaskCard({ task }: TaskCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { updateTask } = useTasks();
@@ -89,130 +80,129 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <Card className="transform transition-all duration-300 hover:shadow-lg">
+      <Card className="transform transition-all duration-200 hover:shadow-md hover:-translate-y-px">
         <div
-          className="cursor-pointer p-4"
+          className="cursor-pointer p-3"
           onClick={() => setIsEditDialogOpen(true)}
         >
           <CardHeader className="p-0 pb-2">
-            <div className="flex items-start justify-between">
-              <CardTitle className="text-base font-medium leading-snug">
+              <CardTitle className="text-sm font-medium leading-snug">
                 {title}
               </CardTitle>
-            </div>
           </CardHeader>
           <CardContent className="p-0 pt-2">
-            <div className="mb-3 flex flex-wrap gap-2">
-              {tags.map(tag => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <div className="flex -space-x-2">
-                {assignees.map(user => (
-                  <TooltipProvider key={user.id}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Avatar className="h-6 w-6 border-2 border-card">
-                          <AvatarImage
-                            src={user.avatarUrl}
-                            alt={user.name}
-                            data-ai-hint="person portrait"
-                          />
-                          <AvatarFallback>{user.initials}</AvatarFallback>
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{user.name}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+            {tags?.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1">
+                {tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
                 ))}
               </div>
+            )}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+               <div className="flex items-center gap-2">
+                 <div className="flex -space-x-2">
+                  {assignees.map(user => (
+                    <TooltipProvider key={user.id} delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Avatar className="h-5 w-5 border-2 border-card">
+                            <AvatarImage
+                              src={user.avatarUrl}
+                              alt={user.name}
+                              data-ai-hint="person portrait"
+                            />
+                            <AvatarFallback>{user.initials}</AvatarFallback>
+                          </Avatar>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{user.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                </div>
+              </div>
+               <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <PriorityIcon
+                          className={cn('h-3.5 w-3.5', priorityColors[priority])}
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuRadioGroup
+                        value={priority}
+                        onValueChange={value =>
+                          handlePriorityChange(value as TaskPriority)
+                        }
+                      >
+                        <DropdownMenuRadioItem value="low">Low</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="medium">
+                          Medium
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="high">High</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          'h-6 gap-1 px-1 text-xs',
+                          isOverdue && 'font-semibold text-destructive'
+                        )}
+                      >
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {format(new Date(dueDate), 'MMM d')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(dueDate)}
+                        onSelect={handleDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+               </div>
             </div>
           </CardContent>
         </div>
-        <div className="flex items-center gap-2 border-t p-2">
-          {/* Status quick-edit */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 justify-center capitalize"
-              >
-                {status.replace('-', ' ')}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuRadioGroup
-                value={status}
-                onValueChange={value => handleStatusChange(value as TaskStatus)}
-              >
-                <DropdownMenuRadioItem value="todo">To Do</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="in-progress">
-                  In Progress
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="review">
-                  Review
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="done">Done</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Priority quick-edit */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <PriorityIcon
-                  className={cn('h-4 w-4', priorityColors[priority])}
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuRadioGroup
-                value={priority}
-                onValueChange={value =>
-                  handlePriorityChange(value as TaskPriority)
-                }
-              >
-                <DropdownMenuRadioItem value="low">Low</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="medium">
-                  Medium
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="high">High</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Due date quick-edit */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'text-muted-foreground',
-                  isOverdue && 'font-semibold text-destructive'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {format(new Date(dueDate), 'MMM d')}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={new Date(dueDate)}
-                onSelect={handleDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+         <div className="border-t">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-center rounded-t-none text-xs capitalize text-muted-foreground"
+                >
+                    {status.replace('-', ' ')}
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                <DropdownMenuRadioGroup
+                    value={status}
+                    onValueChange={value => handleStatusChange(value as TaskStatus)}
+                >
+                    <DropdownMenuRadioItem value="todo">To Do</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="in-progress">
+                    In Progress
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="review">
+                    Review
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="done">Done</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+         </div>
       </Card>
       {isEditDialogOpen && (
         <DialogContent className="sm:max-w-[625px]">

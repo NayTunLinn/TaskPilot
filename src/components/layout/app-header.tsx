@@ -22,10 +22,10 @@ export function AppHeader() {
   const currentUser = users[0];
 
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 md:px-6">
       {isMobile && (
         <Button variant="ghost" size="icon" onClick={toggle} className="md:hidden">
-          <Menu className="h-6 w-6" />
+          <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle sidebar</span>
         </Button>
       )}
@@ -35,18 +35,18 @@ export function AppHeader() {
           <Input
             type="search"
             placeholder="Search tasks..."
-            className="w-full bg-background pl-8 md:w-[200px] lg:w-[320px]"
+            className="w-full bg-background pl-8 text-sm md:w-[200px] lg:w-[320px]"
           />
         </div>
       </div>
       <CreateTaskButton />
-      <Button variant="ghost" size="icon">
-        <Bell className="h-5 w-5" />
+      <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Bell className="h-4 w-4" />
         <span className="sr-only">Notifications</span>
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
             <Avatar className="h-8 w-8">
               <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="person portrait" />
               <AvatarFallback>{currentUser.initials}</AvatarFallback>
