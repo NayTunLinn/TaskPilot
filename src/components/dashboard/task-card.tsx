@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import type { Task, TaskPriority, TaskStatus } from '@/lib/types';
+import type { SubTask, Task, TaskPriority, TaskStatus } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +17,7 @@ import {
   ChevronDown,
   Flag,
   CircleDotDashed,
+  CheckCircle,
 } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -39,6 +41,7 @@ import { Button } from '../ui/button';
 import { useTasks } from '@/contexts/TaskProvider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
+import { Progress } from '../ui/progress';
 
 interface TaskCardProps {
   task: Task;
@@ -74,7 +77,7 @@ const priorityIcons: Record<TaskPriority, React.ElementType> = {
 export function TaskCard({ task }: TaskCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { updateTask } = useTasks();
-  const { title, priority, tags, dueDate, assignees, status } = task;
+  const { title, priority, tags, dueDate, assignees, status, subTasks } = task;
   const isOverdue = isPast(new Date(dueDate)) && task.status !== 'done';
 
   const handleStatusChange = (newStatus: TaskStatus) => {
@@ -90,9 +93,16 @@ export function TaskCard({ task }: TaskCardProps) {
       updateTask({ ...task, dueDate: newDate.toISOString() });
     }
   };
+  
+  const handleSubTaskToggle = (subTaskId: string) => {
+    const newSubTasks = subTasks?.map(st => st.id === subTaskId ? {...st, completed: !st.completed} : st);
+    updateTask({...task, subTasks: newSubTasks});
+  }
 
   const PriorityIcon = priorityIcons[priority];
   const styles = priorityStyles[priority];
+  const completedSubTasks = subTasks?.filter(st => st.completed).length || 0;
+  const subTaskProgress = subTasks?.length ? (completedSubTasks / subTasks.length) * 100 : 0;
 
   return (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -119,6 +129,17 @@ export function TaskCard({ task }: TaskCardProps) {
                     {tag}
                   </Badge>
                 ))}
+              </div>
+            )}
+             {subTasks && subTasks.length > 0 && (
+              <div className="my-3 space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        <span>{completedSubTasks}/{subTasks.length} Sub-tasks</span>
+                    </div>
+                </div>
+                <Progress value={subTaskProgress} className="h-2" />
               </div>
             )}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -152,13 +173,14 @@ export function TaskCard({ task }: TaskCardProps) {
                       variant="ghost"
                       size="icon"
                       className={cn('h-6 w-6 rounded-full', styles.bgColor)}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <PriorityIcon
                         className={cn('h-3.5 w-3.5', styles.iconColor)}
                       />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuRadioGroup
                       value={priority}
                       onValueChange={value =>
@@ -182,6 +204,7 @@ export function TaskCard({ task }: TaskCardProps) {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={(e) => e.stopPropagation()}
                       className={cn(
                         'h-6 gap-1 px-1 text-xs',
                         isOverdue && 'font-semibold text-destructive'
@@ -191,7 +214,7 @@ export function TaskCard({ task }: TaskCardProps) {
                       {format(new Date(dueDate), 'MMM d')}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
+                  <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
                     <Calendar
                       mode="single"
                       selected={new Date(dueDate)}
@@ -211,11 +234,12 @@ export function TaskCard({ task }: TaskCardProps) {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-center rounded-t-none text-xs capitalize text-muted-foreground"
+                onClick={(e) => e.stopPropagation()}
               >
                 {status.replace('-', ' ')}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
               <DropdownMenuRadioGroup
                 value={status}
                 onValueChange={value => handleStatusChange(value as TaskStatus)}

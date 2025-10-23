@@ -1,3 +1,4 @@
+
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
@@ -25,6 +26,12 @@ export interface Team {
   members: UserProfile[];
 }
 
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -35,4 +42,5 @@ export interface Task {
   assignees: User[];
   tags: string[];
   project: Project;
+  subTasks?: SubTask[];
 }

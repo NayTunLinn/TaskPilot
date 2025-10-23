@@ -1,7 +1,8 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Sparkles } from 'lucide-react';
+import { CalendarIcon, Sparkles, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useTasks } from '@/contexts/TaskProvider';
@@ -45,6 +46,13 @@ import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
+import { Separator } from '../ui/separator';
+
+const subTaskSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Sub-task title cannot be empty.'),
+  completed: z.boolean(),
+});
 
 const taskFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -57,6 +65,7 @@ const taskFormSchema = z.object({
     required_error: 'A due date is required.',
   }),
   tags: z.array(z.string()).optional(),
+  subTasks: z.array(subTaskSchema).optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -95,6 +104,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
           projectId: taskToEdit.project.id,
           assigneeIds: taskToEdit.assignees.map(a => a.id),
           dueDate: new Date(taskToEdit.dueDate),
+          subTasks: taskToEdit.subTasks || [],
         }
       : {
           title: '',
@@ -103,7 +113,13 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
           status: 'todo',
           assigneeIds: [],
           tags: [],
+          subTasks: [],
         },
+  });
+
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: "subTasks",
   });
 
   const handleSuggestTags = async () => {
@@ -152,6 +168,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         project: selectedProject as Project,
         assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
+        subTasks: data.subTasks || [],
       };
       updateTask(updatedTask);
       toast({
@@ -165,6 +182,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         project: selectedProject as Project,
         assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
+        subTasks: data.subTasks || [],
       };
       addTask(newTask);
       toast({
@@ -205,6 +223,43 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
             </FormItem>
           )}
         />
+
+        <Separator />
+        
+        <div>
+            <FormLabel>Sub-tasks</FormLabel>
+            <div className="mt-2 space-y-2">
+                {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2">
+                         <Checkbox
+                            checked={field.completed}
+                            onCheckedChange={(checked) => {
+                                update(index, { ...field, completed: !!checked });
+                            }}
+                        />
+                        <Input
+                            {...form.register(`subTasks.${index}.title`)}
+                            className="flex-1"
+                            placeholder="Sub-task description"
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                    </div>
+                ))}
+                 <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append({ id: `subtask-${Date.now()}`, title: '', completed: false })}
+                >
+                    Add Sub-task
+                </Button>
+            </div>
+        </div>
+
+        <Separator />
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}

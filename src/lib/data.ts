@@ -1,3 +1,4 @@
+
 import type { UserProfile, Project, Task, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { addDays, formatISO } from 'date-fns';
@@ -33,6 +34,10 @@ export const initialTasks: Task[] = [
     assignees: [users[0], users[1]],
     tags: ['Design', 'UI/UX'],
     project: projects[0],
+    subTasks: [
+        { id: 'sub-1-1', title: 'Create wireframes', completed: true },
+        { id: 'sub-1-2', title: 'Create mockups', completed: false },
+    ]
   },
   {
     id: 'task-2',
@@ -77,6 +82,10 @@ export const initialTasks: Task[] = [
     assignees: [users[0]],
     tags: ['Design', 'Marketing'],
     project: projects[1],
+    subTasks: [
+        { id: 'sub-5-1', title: 'Capture iOS screenshots', completed: true },
+        { id: 'sub-5-2', title: 'Capture Android screenshots', completed: true },
+    ]
   },
   {
     id: 'task-6',

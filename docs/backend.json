@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -64,6 +65,64 @@
         }
       },
       "required": ["name"]
+    },
+    "SubTask": {
+      "title": "Sub-task",
+      "description": "A single sub-task within a larger task.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "completed": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "title", "completed"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A single task item.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["todo", "in-progress", "review", "done"]
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "assignees": {
+          "type": "array",
+          "items": { "$ref": "#/entities/UserProfile" }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "project": {
+          "$ref": "#/entities/Project"
+        },
+        "subTasks": {
+          "type": "array",
+          "items": { "$ref": "#/entities/SubTask" }
+        }
+      },
+      "required": ["title", "status", "priority", "dueDate", "project"]
     }
   },
   "auth": {
@@ -87,6 +146,12 @@
         "$ref": "#/entities/Project"
       },
       "description": "Stores information about individual projects."
+    },
+    "/projects/{projectId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/entities/Task"
+      },
+      "description": "Stores tasks within a project."
     }
   }
 }
