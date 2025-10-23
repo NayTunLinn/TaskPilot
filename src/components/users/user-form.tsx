@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,7 +66,6 @@ export function UserForm({ onFinished, userToEdit }: UserFormProps) {
           title: 'User Updated',
           description: `"${data.name}" has been updated.`,
         });
-        onFinished();
       } else {
         const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl;
         await addDoc(collection(firestore, 'users'), {
@@ -77,8 +77,8 @@ export function UserForm({ onFinished, userToEdit }: UserFormProps) {
           title: 'User Created',
           description: `User "${data.name}" has been created.`,
         });
-        onFinished();
       }
+      onFinished();
     } catch (error: any) {
       console.error('Error saving user: ', error);
       toast({

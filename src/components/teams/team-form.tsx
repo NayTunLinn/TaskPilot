@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -88,7 +89,6 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
           title: 'Team Updated',
           description: `"${data.name}" has been updated.`,
         });
-        onFinished();
       } else {
         await addDoc(collection(firestore, 'teams'), {
           ...data,
@@ -98,8 +98,8 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
           title: 'Team Created',
           description: `Team "${data.name}" has been created.`,
         });
-        onFinished();
       }
+      onFinished();
     } catch (error: any) {
       console.error('Error saving team: ', error);
       toast({
@@ -153,7 +153,7 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        'justify-between',
+                        'justify-between h-auto min-h-10',
                         !field.value?.length && 'text-muted-foreground'
                       )}
                     >
@@ -171,7 +171,7 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0" align="start">
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command>
                     <CommandInput placeholder="Search users..." />
                     <CommandList>
