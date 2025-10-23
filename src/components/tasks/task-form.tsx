@@ -196,7 +196,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -309,7 +309,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
+           <FormField
             control={form.control}
             name="projectId"
             render={({ field }) => (
@@ -367,7 +367,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
-                    <Button variant="outline" role="combobox" className={cn('justify-between', !field.value?.length && 'text-muted-foreground')}>
+                    <Button variant="outline" role="combobox" className={cn('justify-between h-auto min-h-10', !field.value?.length && 'text-muted-foreground')}>
                       <div className="flex flex-wrap gap-1">
                         {field.value?.length > 0 && users
                           ? users
@@ -378,7 +378,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0" align="start">
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command>
                     <CommandInput placeholder="Search users..." />
                     <CommandList>
