@@ -79,15 +79,22 @@ const priorityIcons: Record<TaskPriority, React.ElementType> = {
 export function TaskCard({ task }: TaskCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { updateTask } = useTasks();
-  const { title, priority, tags, dueDate, assignees, status, subTasks } = task;
+  const { id, title, priority, tags, dueDate, assignees, status, subTasks, project } = task;
   const isOverdue = isPast(new Date(dueDate)) && task.status !== 'done';
 
   const getTaskPayload = (updatedFields: Partial<Task>) => {
     return {
-      ...task,
+      id: id,
+      title: title,
+      description: task.description,
+      status: status,
+      priority: priority,
+      dueDate: dueDate,
+      tags: tags,
+      subTasks: subTasks,
       ...updatedFields,
-      projectId: task.project.id,
-      assigneeIds: task.assignees.map(a => a.id),
+      projectId: project.id,
+      assigneeIds: assignees.map(a => a.id),
     }
   }
 

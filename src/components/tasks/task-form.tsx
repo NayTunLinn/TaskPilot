@@ -153,21 +153,25 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
     if (!users || !projects) return;
 
     try {
+        const payload = {
+            ...data,
+            dueDate: data.dueDate.toISOString(),
+            tags: data.tags || [],
+            description: data.description || '',
+            subTasks: data.subTasks || [],
+        };
+
       if (isEditMode && taskToEdit) {
         await updateTask({
           id: taskToEdit.id,
-          ...data,
-          dueDate: data.dueDate.toISOString(),
+          ...payload
         });
         toast({
           title: 'Task Updated',
           description: `"${data.title}" has been updated.`,
         });
       } else {
-        await addTask({
-          ...data,
-          dueDate: data.dueDate.toISOString(),
-        });
+        await addTask(payload);
         toast({
           title: 'Task Created',
           description: `"${data.title}" has been added to the board.`,
@@ -428,8 +432,8 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
               </div>
               <FormControl>
                 <TagInput
-                  value={field.value}
-                  onChange={field.onChange}
+                  {...field}
+                  value={field.value || []}
                   suggestedTags={suggestedTags}
                   onClearSuggestions={() => setSuggestedTags([])}
                 />

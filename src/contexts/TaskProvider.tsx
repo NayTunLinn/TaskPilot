@@ -1,15 +1,16 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import type { Task, TaskStatus, User, Project } from '@/lib/types';
+import type { Task, TaskStatus, User, Project, FirestoreTaskData } from '@/lib/types';
 import { produce } from 'immer';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, doc, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => void;
-  updateTask: (task: Omit<Task, 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => void;
+  addTask: (task: Omit<FirestoreTaskData, 'id'>) => Promise<void>;
+  updateTask: (task: FirestoreTaskData) => Promise<void>;
   deleteTask: (taskId: string) => void;
 }
 
@@ -55,26 +56,17 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [tasksData, projectsData, usersData, tasksLoading, projectsLoading, usersLoading]);
 
-  const addTask = async (task: Omit<Task, 'id' | 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => {
+  const addTask = async (taskData: Omit<FirestoreTaskData, 'id'>) => {
     if (!firestore) return;
-    const { projectId, assigneeIds, ...rest } = task;
     const taskCollection = collection(firestore, 'tasks');
-    await addDoc(taskCollection, {
-      ...rest,
-      projectId,
-      assigneeIds,
-    });
+    await addDoc(taskCollection, taskData);
   };
 
-  const updateTask = async (task: Omit<Task, 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => {
+  const updateTask = async (taskData: FirestoreTaskData) => {
     if (!firestore) return;
-    const { id, projectId, assigneeIds, ...rest } = task;
+    const { id, ...rest } = taskData;
     const taskRef = doc(firestore, 'tasks', id);
-    await setDoc(taskRef, {
-        ...rest,
-        projectId,
-        assigneeIds,
-    }, { merge: true });
+    await setDoc(taskRef, rest, { merge: true });
   };
   
   const deleteTask = async (taskId: string) => {
