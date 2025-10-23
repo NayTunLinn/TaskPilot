@@ -44,10 +44,25 @@ interface TaskCardProps {
   task: Task;
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  high: 'text-destructive',
-  medium: 'text-chart-4',
-  low: 'text-chart-2',
+const priorityStyles: Record<
+  TaskPriority,
+  { iconColor: string; borderColor: string; bgColor: string }
+> = {
+  high: {
+    iconColor: 'text-destructive',
+    borderColor: 'border-l-destructive',
+    bgColor: 'bg-destructive/20',
+  },
+  medium: {
+    iconColor: 'text-chart-4',
+    borderColor: 'border-l-chart-4',
+    bgColor: 'bg-chart-4/20',
+  },
+  low: {
+    iconColor: 'text-chart-2',
+    borderColor: 'border-l-chart-2',
+    bgColor: 'bg-chart-2/20',
+  },
 };
 
 const priorityIcons: Record<TaskPriority, React.ElementType> = {
@@ -75,20 +90,26 @@ export function TaskCard({ task }: TaskCardProps) {
       updateTask({ ...task, dueDate: newDate.toISOString() });
     }
   };
-  
+
   const PriorityIcon = priorityIcons[priority];
+  const styles = priorityStyles[priority];
 
   return (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <Card className="transform transition-all duration-200 hover:shadow-md hover:-translate-y-px">
+      <Card
+        className={cn(
+          'border-l-4 transform transition-all duration-200 hover:shadow-lg hover:-translate-y-px',
+          styles.borderColor
+        )}
+      >
         <div
           className="cursor-pointer p-3"
           onClick={() => setIsEditDialogOpen(true)}
         >
           <CardHeader className="p-0 pb-2">
-              <CardTitle className="text-sm font-medium leading-snug">
-                {title}
-              </CardTitle>
+            <CardTitle className="text-sm font-medium leading-snug">
+              {title}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0 pt-2">
             {tags?.length > 0 && (
@@ -101,8 +122,8 @@ export function TaskCard({ task }: TaskCardProps) {
               </div>
             )}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-               <div className="flex items-center gap-2">
-                 <div className="flex -space-x-2">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
                   {assignees.map(user => (
                     <TooltipProvider key={user.id} delayDuration={100}>
                       <Tooltip>
@@ -124,85 +145,91 @@ export function TaskCard({ task }: TaskCardProps) {
                   ))}
                 </div>
               </div>
-               <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <PriorityIcon
-                          className={cn('h-3.5 w-3.5', priorityColors[priority])}
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuRadioGroup
-                        value={priority}
-                        onValueChange={value =>
-                          handlePriorityChange(value as TaskPriority)
-                        }
-                      >
-                        <DropdownMenuRadioItem value="low">Low</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="medium">
-                          Medium
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="high">High</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          'h-6 gap-1 px-1 text-xs',
-                          isOverdue && 'font-semibold text-destructive'
-                        )}
-                      >
-                        <CalendarIcon className="h-3.5 w-3.5" />
-                        {format(new Date(dueDate), 'MMM d')}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={new Date(dueDate)}
-                        onSelect={handleDateChange}
-                        initialFocus
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn('h-6 w-6 rounded-full', styles.bgColor)}
+                    >
+                      <PriorityIcon
+                        className={cn('h-3.5 w-3.5', styles.iconColor)}
                       />
-                    </PopoverContent>
-                  </Popover>
-               </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuRadioGroup
+                      value={priority}
+                      onValueChange={value =>
+                        handlePriorityChange(value as TaskPriority)
+                      }
+                    >
+                      <DropdownMenuRadioItem value="low">
+                        Low
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="medium">
+                        Medium
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="high">
+                        High
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'h-6 gap-1 px-1 text-xs',
+                        isOverdue && 'font-semibold text-destructive'
+                      )}
+                    >
+                      <CalendarIcon className="h-3.5 w-3.5" />
+                      {format(new Date(dueDate), 'MMM d')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={new Date(dueDate)}
+                      onSelect={handleDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </CardContent>
         </div>
-         <div className="border-t">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-center rounded-t-none text-xs capitalize text-muted-foreground"
-                >
-                    {status.replace('-', ' ')}
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                <DropdownMenuRadioGroup
-                    value={status}
-                    onValueChange={value => handleStatusChange(value as TaskStatus)}
-                >
-                    <DropdownMenuRadioItem value="todo">To Do</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="in-progress">
-                    In Progress
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="review">
-                    Review
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="done">Done</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
-         </div>
+        <div className="border-t">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-center rounded-t-none text-xs capitalize text-muted-foreground"
+              >
+                {status.replace('-', ' ')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup
+                value={status}
+                onValueChange={value => handleStatusChange(value as TaskStatus)}
+              >
+                <DropdownMenuRadioItem value="todo">To Do</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="in-progress">
+                  In Progress
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="review">Review</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="done">Done</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </Card>
       {isEditDialogOpen && (
         <DialogContent className="sm:max-w-[625px]">
