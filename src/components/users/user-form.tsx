@@ -16,8 +16,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { UserProfile } from '@/lib/types';
-import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const userFormSchema = z.object({
@@ -40,7 +38,6 @@ const getInitials = (name: string) => {
 
 export function UserForm({ onFinished, userToEdit }: UserFormProps) {
   const { toast } = useToast();
-  const firestore = useFirestore();
   const isEditMode = !!userToEdit;
 
   const form = useForm<UserFormValues>({
@@ -57,8 +54,6 @@ export function UserForm({ onFinished, userToEdit }: UserFormProps) {
   });
 
   async function onSubmit(data: UserFormValues) {
-    if (!firestore) return;
-
     try {
       if (isEditMode && userToEdit) {
         // Update logic will be added later
@@ -68,11 +63,12 @@ export function UserForm({ onFinished, userToEdit }: UserFormProps) {
         });
       } else {
         const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl;
-        await addDoc(collection(firestore, 'users'), {
-          ...data,
+        // Mock add
+        console.log('Adding user:', {
+             ...data,
           initials: getInitials(data.name),
           avatarUrl: randomAvatar,
-        });
+        })
         toast({
           title: 'User Created',
           description: `User "${data.name}" has been created.`,

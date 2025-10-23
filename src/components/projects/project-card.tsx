@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,8 +20,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ProjectForm } from './project-form';
-import { useFirestore } from '@/firebase';
-import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -40,25 +39,14 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    if (!firestore) return;
-    try {
-      const projectRef = doc(firestore, 'projects', project.id);
-      await deleteDoc(projectRef);
-      toast({
-        title: 'Project Deleted',
-        description: `"${project.name}" has been deleted.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error deleting project',
-        description: 'There was a problem deleting the project.',
-        variant: 'destructive',
-      });
-    }
+    // Mock delete
+    toast({
+      title: 'Project Deleted',
+      description: `"${project.name}" has been deleted.`,
+    });
   };
 
   return (

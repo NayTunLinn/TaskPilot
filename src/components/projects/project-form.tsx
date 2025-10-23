@@ -17,8 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/lib/types';
-import { useFirestore } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 
 const projectFormSchema = z.object({
   name: z.string().min(3, 'Project name must be at least 3 characters.'),
@@ -28,13 +26,12 @@ const projectFormSchema = z.object({
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 interface ProjectFormProps {
-  onFinished: () => void;
+  onFinished: (project?: Project) => void;
   projectToEdit?: Project;
 }
 
 export function ProjectForm({ onFinished, projectToEdit }: ProjectFormProps) {
   const { toast } = useToast();
-  const firestore = useFirestore();
   const isEditMode = !!projectToEdit;
 
   const form = useForm<ProjectFormValues>({
@@ -51,24 +48,27 @@ export function ProjectForm({ onFinished, projectToEdit }: ProjectFormProps) {
   });
 
   async function onSubmit(data: ProjectFormValues) {
-    if (!firestore) return;
-
     try {
       if (isEditMode && projectToEdit) {
-        const projectRef = doc(firestore, 'projects', projectToEdit.id);
-        await setDoc(projectRef, data, { merge: true });
+        // This would be a call to an update function
+        console.log('Updating project', { ...projectToEdit, ...data });
         toast({
           title: 'Project Updated',
           description: `"${data.name}" has been updated.`,
         });
+        onFinished({ ...projectToEdit, ...data });
       } else {
-        await addDoc(collection(firestore, 'projects'), data);
+        const newProject = {
+          id: `proj-${Date.now()}`,
+          ...data,
+        }
+        console.log('Creating project', newProject);
         toast({
           title: 'Project Created',
           description: `Project "${data.name}" has been created.`,
         });
+        onFinished(newProject);
       }
-      onFinished();
     } catch (error: any) {
       console.error('Error saving project: ', error);
       toast({
@@ -76,6 +76,7 @@ export function ProjectForm({ onFinished, projectToEdit }: ProjectFormProps) {
         description: 'Could not save project.',
         variant: 'destructive',
       });
+      onFinished();
     }
   }
 

@@ -1,6 +1,6 @@
+
 'use client';
 
-import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -8,24 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import { useCollection } from '@/firebase';
-import { collection, orderBy, query } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import { Team } from '@/lib/types';
 import { CreateTeamButton } from '@/components/teams/create-team-button';
 import { TeamCard } from '@/components/teams/team-card';
+import { teams as mockTeams } from '@/lib/data';
+import { useState } from 'react';
+
 
 export default function TeamsPage() {
-  const firestore = useFirestore();
-
-  const teamsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'teams'), orderBy('name'));
-  }, [firestore]);
-
-  const { data: teams, loading } = useCollection(teamsQuery);
+  const [teams, setTeams] = useState(mockTeams);
 
   return (
     <div className="flex flex-col gap-8">
@@ -39,30 +30,13 @@ export default function TeamsPage() {
         <CreateTeamButton />
       </div>
 
-      {loading && (
-         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <div className="h-6 w-3/4 rounded-md bg-muted animate-pulse" />
-                <div className="h-4 w-full rounded-md bg-muted animate-pulse" />
-              </CardHeader>
-              <CardContent>
-                 <div className="h-4 w-1/4 rounded-md bg-muted animate-pulse" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {teams?.map(team => (
+          <TeamCard key={team.id} team={team as Team} />
+        ))}
+      </div>
 
-      {!loading && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {teams?.map(team => (
-            <TeamCard key={team.id} team={team as Team} />
-          ))}
-        </div>
-      )}
-       {!loading && teams?.length === 0 && (
+       {teams?.length === 0 && (
           <div className="col-span-full text-center text-muted-foreground">
             <p>No teams found. Click "Add Team" to create one.</p>
           </div>

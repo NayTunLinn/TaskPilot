@@ -17,9 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Team, UserProfile } from '@/lib/types';
-import { useFirestore } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
-import { useCollection } from '@/firebase';
 import { useMemo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
@@ -33,6 +30,7 @@ import {
   CommandList,
 } from '../ui/command';
 import { Checkbox } from '../ui/checkbox';
+import { users as mockUsers } from '@/lib/data';
 
 const teamFormSchema = z.object({
   name: z.string().min(3, 'Team name must be at least 3 characters.'),
@@ -49,14 +47,9 @@ interface TeamFormProps {
 
 export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
   const { toast } = useToast();
-  const firestore = useFirestore();
   const isEditMode = !!teamToEdit;
 
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'users');
-  }, [firestore]);
-  const { data: users, loading: loadingUsers } = useCollection(usersQuery);
+  const users = mockUsers;
 
   const form = useForm<TeamFormValues>({
     resolver: zodResolver(teamFormSchema),
@@ -74,26 +67,17 @@ export function TeamForm({ onFinished, teamToEdit }: TeamFormProps) {
   });
 
   async function onSubmit(data: TeamFormValues) {
-    if (!firestore || !users) return;
+    if (!users) return;
 
     const selectedMembers = users.filter(user => data.memberIds?.includes(user.id));
 
     try {
       if (isEditMode && teamToEdit) {
-        const teamRef = doc(firestore, 'teams', teamToEdit.id);
-        await setDoc(teamRef, {
-            ...data,
-            members: selectedMembers,
-        }, { merge: true });
         toast({
           title: 'Team Updated',
           description: `"${data.name}" has been updated.`,
         });
       } else {
-        await addDoc(collection(firestore, 'teams'), {
-          ...data,
-          members: selectedMembers,
-        });
         toast({
           title: 'Team Created',
           description: `Team "${data.name}" has been created.`,

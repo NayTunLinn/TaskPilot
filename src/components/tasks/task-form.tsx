@@ -44,9 +44,8 @@ import {
 } from '@/components/ui/command';
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
 import { Separator } from '../ui/separator';
+import { users as mockUsers, projects as mockProjects } from '@/lib/data';
 
 const subTaskSchema = z.object({
   id: z.string(),
@@ -81,20 +80,9 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const isEditMode = !!taskToEdit;
-  const firestore = useFirestore();
-
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), orderBy('name'));
-  }, [firestore]);
-  const { data: users, loading: loadingUsers } = useCollection(usersQuery);
-
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('name'));
-  }, [firestore]);
-  const { data: projects, loading: loadingProjects } = useCollection(projectsQuery);
-
+  
+  const users = mockUsers;
+  const projects = mockProjects;
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -150,8 +138,6 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
   };
 
   async function onSubmit(data: TaskFormValues) {
-    if (!users || !projects) return;
-
     try {
         const payload = {
             ...data,

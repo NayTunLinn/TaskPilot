@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,21 @@ import {
 import { PlusCircle } from 'lucide-react';
 import { ProjectForm } from './project-form';
 import { useState } from 'react';
+import type { Project } from '@/lib/types';
 
-export function CreateProjectButton() {
+interface CreateProjectButtonProps {
+  onProjectCreated: (project: Project) => void;
+}
+
+export function CreateProjectButton({ onProjectCreated }: CreateProjectButtonProps) {
   const [open, setOpen] = useState(false);
+
+  const handleFinished = (project?: Project) => {
+    if (project) {
+        onProjectCreated(project);
+    }
+    setOpen(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -31,7 +44,7 @@ export function CreateProjectButton() {
             Fill in the details below to add a new project.
           </DialogDescription>
         </DialogHeader>
-        <ProjectForm onFinished={() => setOpen(false)} />
+        <ProjectForm onFinished={handleFinished} />
       </DialogContent>
     </Dialog>
   );

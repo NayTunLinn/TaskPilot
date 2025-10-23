@@ -1,11 +1,10 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Task, TaskStatus, User, Project, FirestoreTaskData } from '@/lib/types';
 import { produce } from 'immer';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, doc, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { initialTasks, projects, users } from '@/lib/data';
 
 interface TaskContextType {
   tasks: Task[];
@@ -16,63 +15,45 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
+const enrichTask = (taskData: FirestoreTaskData | Omit<FirestoreTaskData, 'id'>): Task => {
+    const project = projects.find(p => p.id === taskData.projectId);
+    const assignees = users.filter(u => taskData.assigneeIds.includes(u.id));
+    return {
+        ...taskData,
+        id: 'id' in taskData ? taskData.id : `task-${Date.now()}`,
+        project: project || projects[0],
+        assignees: assignees,
+    } as Task;
+}
+
+
 export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
-  const firestore = useFirestore();
-
-  const tasksQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'tasks');
-  }, [firestore]);
-
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'projects');
-  }, [firestore]);
-
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'users');
-  }, [firestore]);
-
-  const { data: tasksData, loading: tasksLoading } = useCollection(tasksQuery);
-  const { data: projectsData, loading: projectsLoading } = useCollection(projectsQuery);
-  const { data: usersData, loading: usersLoading } = useCollection(usersQuery);
-
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    if (!tasksLoading && !projectsLoading && !usersLoading && tasksData && projectsData && usersData) {
-      const enrichedTasks = tasksData.map(task => {
-        const project = projectsData.find(p => p.id === task.projectId) as Project;
-        const assignees = usersData.filter(u => task.assigneeIds?.includes(u.id)) as User[];
-        return {
-          ...task,
-          id: task.id,
-          project,
-          assignees,
-        } as Task;
-      });
-      setTasks(enrichedTasks);
-    }
-  }, [tasksData, projectsData, usersData, tasksLoading, projectsLoading, usersLoading]);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const addTask = async (taskData: Omit<FirestoreTaskData, 'id'>) => {
-    if (!firestore) return;
-    const taskCollection = collection(firestore, 'tasks');
-    await addDoc(taskCollection, taskData);
+    const newTask = enrichTask(taskData);
+    setTasks(produce(draft => {
+      draft.push(newTask);
+    }));
   };
 
   const updateTask = async (taskData: FirestoreTaskData) => {
-    if (!firestore) return;
-    const { id, ...rest } = taskData;
-    const taskRef = doc(firestore, 'tasks', id);
-    await setDoc(taskRef, rest, { merge: true });
+    const updatedTask = enrichTask(taskData);
+    setTasks(produce(draft => {
+        const index = draft.findIndex(t => t.id === updatedTask.id);
+        if (index !== -1) {
+            draft[index] = updatedTask;
+        }
+    }));
   };
   
   const deleteTask = async (taskId: string) => {
-    if (!firestore) return;
-    const taskRef = doc(firestore, 'tasks', taskId);
-    await deleteDoc(taskRef);
+     setTasks(produce(draft => {
+        const index = draft.findIndex(t => t.id === taskId);
+        if (index !== -1) {
+            draft.splice(index, 1);
+        }
+    }));
   }
 
   return (

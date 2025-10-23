@@ -1,8 +1,6 @@
+
 'use client';
 
-import { useMemo } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, orderBy, query } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -13,18 +11,11 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CreateUserButton } from '@/components/users/create-user-button';
+import { users as mockUsers } from '@/lib/data';
 
 export default function UsersPage() {
-  const firestore = useFirestore();
-
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), orderBy('name'));
-  }, [firestore]);
-
-  const { data: users, loading } = useCollection(usersQuery);
+  const users = mockUsers;
 
   return (
     <div className="flex flex-col gap-8">
@@ -50,25 +41,7 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading &&
-                  [...Array(5)].map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <div className="flex items-center gap-4">
-                          <Skeleton className="h-10 w-10 rounded-full" />
-                          <div className="space-y-1">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-3 w-24" />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-48" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                {!loading &&
-                  users?.map(user => (
+                {users?.map(user => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-4">
@@ -94,7 +67,7 @@ export default function UsersPage() {
               </TableBody>
             </Table>
           </div>
-          {!loading && users?.length === 0 && (
+          {users?.length === 0 && (
             <div className="py-24 text-center text-muted-foreground">
               <p>No users found.</p>
             </div>
