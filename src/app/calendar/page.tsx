@@ -38,12 +38,8 @@ export default function CalendarPage() {
     hasTasks: 'bg-primary/20',
   };
 
-  const handleZoom = (direction: 'in' | 'out') => {
-    if (direction === 'in') {
-      setNumberOfMonths(prev => Math.max(1, prev - 1));
-    } else {
-      setNumberOfMonths(prev => Math.min(3, prev + 1));
-    }
+  const handleToggleZoom = () => {
+    setNumberOfMonths(prev => (prev === 1 ? 3 : 1));
   };
 
   return (
@@ -65,20 +61,14 @@ export default function CalendarPage() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => handleZoom('out')}
-              disabled={numberOfMonths === 3}
+              onClick={handleToggleZoom}
             >
-              <Expand className="h-4 w-4" />
-              <span className="sr-only">Expand</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handleZoom('in')}
-              disabled={numberOfMonths === 1}
-            >
-              <Shrink className="h-4 w-4" />
-              <span className="sr-only">Shrink</span>
+              {numberOfMonths === 1 ? (
+                <Expand className="h-4 w-4" />
+              ) : (
+                <Shrink className="h-4 w-4" />
+              )}
+              <span className="sr-only">{numberOfMonths === 1 ? 'Expand' : 'Shrink'}</span>
             </Button>
           </div>
         </CardHeader>
