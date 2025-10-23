@@ -48,6 +48,22 @@
         }
       },
       "required": ["name"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project containing tasks.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the project."
+        }
+      },
+      "required": ["name"]
     }
   },
   "auth": {
@@ -65,6 +81,12 @@
         "$ref": "#/entities/UserProfile"
       },
       "description": "Stores public profiles for users."
+    },
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/Project"
+      },
+      "description": "Stores information about individual projects."
     }
   }
 }

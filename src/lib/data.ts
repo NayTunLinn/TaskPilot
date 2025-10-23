@@ -15,9 +15,9 @@ export const users: User[] = [
 ];
 
 export const projects: Project[] = [
-  { id: 'proj-1', name: 'Website Redesign' },
-  { id: 'proj-2', name: 'Mobile App Launch' },
-  { id: 'proj-3', name: 'Q4 Marketing Campaign' },
+  { id: 'proj-1', name: 'Website Redesign', description: 'A complete overhaul of the company website.' },
+  { id: 'proj-2', name: 'Mobile App Launch', description: 'Launch of the new mobile app for iOS and Android.' },
+  { id: 'proj-3', name: 'Q4 Marketing Campaign', description: 'The marketing campaign for the last quarter of the year.' },
 ];
 
 const today = new Date();

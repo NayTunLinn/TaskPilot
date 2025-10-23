@@ -28,12 +28,11 @@ import { CalendarIcon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useTasks } from '@/contexts/TaskProvider';
-import { projects } from '@/lib/data';
 import { TagInput } from './tag-input';
 import { suggestTags } from '@/ai/flows/ai-suggested-tags';
 import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Task, User } from '@/lib/types';
+import { Task, User, Project } from '@/lib/types';
 import {
   Command,
   CommandEmpty,
@@ -45,7 +44,7 @@ import {
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 const taskFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -77,9 +76,16 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
-    return collection(firestore, 'users');
+    return query(collection(firestore, 'users'), orderBy('name'));
   }, [firestore]);
   const { data: users, loading: loadingUsers } = useCollection(usersQuery);
+
+  const projectsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'), orderBy('name'));
+  }, [firestore]);
+  const { data: projects, loading: loadingProjects } = useCollection(projectsQuery);
+
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -128,7 +134,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
   };
 
   function onSubmit(data: TaskFormValues) {
-    if (!users) return;
+    if (!users || !projects) return;
 
     const selectedProject = projects.find(p => p.id === data.projectId);
     const selectedAssignees = users.filter(u => data.assigneeIds.includes(u.id));
@@ -143,7 +149,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
         ...taskToEdit,
         ...data,
         id: taskToEdit.id,
-        project: selectedProject,
+        project: selectedProject as Project,
         assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
       };
@@ -156,7 +162,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
       const newTask: Task = {
         id: `task-${Date.now()}`,
         ...data,
-        project: selectedProject,
+        project: selectedProject as Project,
         assignees: selectedAssignees as User[],
         dueDate: data.dueDate.toISOString(),
       };
@@ -261,7 +267,7 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {projects.map(project => (
+                    {projects?.map(project => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
                       </SelectItem>
