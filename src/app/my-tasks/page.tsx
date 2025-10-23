@@ -3,17 +3,17 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTasks } from '@/contexts/TaskProvider';
-import { users } from '@/lib/data';
+import { useUser } from '@/firebase';
 import { TaskCard } from '@/components/dashboard/task-card';
 
 export default function MyTasksPage() {
   const { tasks } = useTasks();
-  const currentUser = users[0];
+  const { user: currentUser } = useUser();
 
   const myTasks = useMemo(() => {
     if (!currentUser) return [];
     return tasks.filter(task =>
-      task.assignees.some(assignee => assignee.id === currentUser.id)
+      task.assignees.some(assignee => assignee.id === currentUser.uid)
     );
   }, [tasks, currentUser]);
 
@@ -28,7 +28,7 @@ export default function MyTasksPage() {
             {myTasks.length > 0 ? (
               myTasks.map(task => <TaskCard key={task.id} task={task} />)
             ) : (
-              <p className="text-muted-foreground col-span-full">You have no tasks assigned to you.</p>
+              <p className="col-span-full py-12 text-center text-muted-foreground">You have no tasks assigned to you.</p>
             )}
           </div>
         </CardContent>

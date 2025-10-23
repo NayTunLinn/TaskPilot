@@ -1,64 +1,91 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { Task, TaskStatus } from '@/lib/types';
-import { initialTasks } from '@/lib/data';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import type { Task, TaskStatus, User, Project } from '@/lib/types';
 import { produce } from 'immer';
+import { useAuth, useCollection, useFirestore } from '@/firebase';
+import { collection, query, where, doc, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Task) => void;
-  updateTask: (task: Task) => void;
+  addTask: (task: Omit<Task, 'id' | 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => void;
+  updateTask: (task: Omit<Task, 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => void;
+  deleteTask: (taskId: string) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-const statusOrder: TaskStatus[] = ['todo', 'in-progress', 'review', 'done'];
-
 export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const firestore = useFirestore();
+  const { user: authUser } = useAuth();
 
-  const addTask = (task: Task) => {
-    setTasks(produce(draft => {
-      draft.unshift(task);
-    }));
-  };
-  
-  const updateTask = (updatedTask: Task) => {
-    setTasks(produce(draft => {
-        const taskIndex = draft.findIndex(t => t.id === updatedTask.id);
-        if (taskIndex !== -1) {
-            draft[taskIndex] = updatedTask;
-        }
-    }));
-  };
+  const tasksQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'tasks');
+  }, [firestore]);
 
-  const simulateTaskProgress = useCallback(() => {
-    setTasks(
-      produce(draft => {
-        // Find a task that is not 'done'
-        const taskToUpdateIndex = draft.findIndex(t => t.status !== 'done');
+  const projectsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'projects');
+  }, [firestore]);
 
-        if (taskToUpdateIndex !== -1) {
-          const task = draft[taskToUpdateIndex];
-          const currentStatusIndex = statusOrder.indexOf(task.status);
-          const nextStatusIndex = (currentStatusIndex + 1) % statusOrder.length;
-          task.status = statusOrder[nextStatusIndex];
-        }
-      })
-    );
-  }, []);
+  const usersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: tasksData, loading: tasksLoading } = useCollection(tasksQuery);
+  const { data: projectsData, loading: projectsLoading } = useCollection(projectsQuery);
+  const { data: usersData, loading: usersLoading } = useCollection(usersQuery);
+
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      simulateTaskProgress();
-    }, 10000); // Auto-updates board every 10 seconds
+    if (!tasksLoading && !projectsLoading && !usersLoading && tasksData && projectsData && usersData) {
+      const enrichedTasks = tasksData.map(task => {
+        const project = projectsData.find(p => p.id === task.projectId) as Project;
+        const assignees = usersData.filter(u => task.assigneeIds?.includes(u.id)) as User[];
+        return {
+          ...task,
+          id: task.id,
+          project,
+          assignees,
+        } as Task;
+      });
+      setTasks(enrichedTasks);
+    }
+  }, [tasksData, projectsData, usersData, tasksLoading, projectsLoading, usersLoading]);
 
-    return () => clearInterval(interval);
-  }, [simulateTaskProgress]);
+  const addTask = async (task: Omit<Task, 'id' | 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => {
+    if (!firestore) return;
+    const { projectId, assigneeIds, ...rest } = task;
+    const taskCollection = collection(firestore, 'tasks');
+    await addDoc(taskCollection, {
+      ...rest,
+      projectId,
+      assigneeIds,
+    });
+  };
+
+  const updateTask = async (task: Omit<Task, 'project' | 'assignees'> & { projectId: string; assigneeIds: string[] }) => {
+    if (!firestore) return;
+    const { id, projectId, assigneeIds, ...rest } = task;
+    const taskRef = doc(firestore, 'tasks', id);
+    await setDoc(taskRef, {
+        ...rest,
+        projectId,
+        assigneeIds,
+    }, { merge: true });
+  };
+  
+  const deleteTask = async (taskId: string) => {
+    if (!firestore) return;
+    const taskRef = doc(firestore, 'tasks', taskId);
+    await deleteDoc(taskRef);
+  }
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, updateTask }}>
+    <TaskContext.Provider value={{ tasks, addTask, updateTask, deleteTask }}>
       {children}
     </TaskContext.Provider>
   );

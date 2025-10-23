@@ -32,6 +32,19 @@ export interface SubTask {
   completed: boolean;
 }
 
+export interface FirestoreTaskData {
+    id: string;
+    title: string;
+    description: string;
+    status: TaskStatus;
+    priority: TaskPriority;
+    dueDate: string;
+    assigneeIds: string[];
+    tags: string[];
+    projectId: string;
+    subTasks?: SubTask[];
+}
+
 export interface Task {
   id: string;
   title: string;

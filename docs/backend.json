@@ -106,23 +106,23 @@
           "type": "string",
           "format": "date-time"
         },
-        "assignees": {
+        "assigneeIds": {
           "type": "array",
-          "items": { "$ref": "#/entities/UserProfile" }
+          "items": { "type": "string" }
         },
         "tags": {
           "type": "array",
           "items": { "type": "string" }
         },
-        "project": {
-          "$ref": "#/entities/Project"
+        "projectId": {
+          "type": "string"
         },
         "subTasks": {
           "type": "array",
           "items": { "$ref": "#/entities/SubTask" }
         }
       },
-      "required": ["title", "status", "priority", "dueDate", "project"]
+      "required": ["title", "status", "priority", "dueDate", "projectId", "assigneeIds"]
     }
   },
   "auth": {
@@ -147,11 +147,11 @@
       },
       "description": "Stores information about individual projects."
     },
-    "/projects/{projectId}/tasks/{taskId}": {
+    "/tasks/{taskId}": {
       "schema": {
         "$ref": "#/entities/Task"
       },
-      "description": "Stores tasks within a project."
+      "description": "Stores all tasks for the application."
     }
   }
 }

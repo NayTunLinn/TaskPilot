@@ -149,49 +149,39 @@ export function TaskForm({ onFinished, taskToEdit }: TaskFormProps) {
     }
   };
 
-  function onSubmit(data: TaskFormValues) {
+  async function onSubmit(data: TaskFormValues) {
     if (!users || !projects) return;
 
-    const selectedProject = projects.find(p => p.id === data.projectId);
-    const selectedAssignees = users.filter(u => data.assigneeIds.includes(u.id));
-
-    if (!selectedProject) {
-      console.error('Project not found');
-      return;
-    }
-
-    if (isEditMode) {
-      const updatedTask: Task = {
-        ...taskToEdit,
-        ...data,
-        id: taskToEdit.id,
-        project: selectedProject as Project,
-        assignees: selectedAssignees as User[],
-        dueDate: data.dueDate.toISOString(),
-        subTasks: data.subTasks || [],
-      };
-      updateTask(updatedTask);
+    try {
+      if (isEditMode && taskToEdit) {
+        await updateTask({
+          id: taskToEdit.id,
+          ...data,
+          dueDate: data.dueDate.toISOString(),
+        });
+        toast({
+          title: 'Task Updated',
+          description: `"${data.title}" has been updated.`,
+        });
+      } else {
+        await addTask({
+          ...data,
+          dueDate: data.dueDate.toISOString(),
+        });
+        toast({
+          title: 'Task Created',
+          description: `"${data.title}" has been added to the board.`,
+        });
+      }
+      onFinished();
+    } catch (error) {
+       console.error('Error saving task:', error);
       toast({
-        title: 'Task Updated',
-        description: `"${data.title}" has been updated.`,
-      });
-    } else {
-      const newTask: Task = {
-        id: `task-${Date.now()}`,
-        ...data,
-        project: selectedProject as Project,
-        assignees: selectedAssignees as User[],
-        dueDate: data.dueDate.toISOString(),
-        subTasks: data.subTasks || [],
-      };
-      addTask(newTask);
-      toast({
-        title: 'Task Created',
-        description: `"${data.title}" has been added to the board.`,
+        title: 'Uh oh! Something went wrong.',
+        description: 'Could not save task.',
+        variant: 'destructive',
       });
     }
-
-    onFinished();
   }
 
   return (
