@@ -82,23 +82,32 @@ export function TaskCard({ task }: TaskCardProps) {
   const { title, priority, tags, dueDate, assignees, status, subTasks } = task;
   const isOverdue = isPast(new Date(dueDate)) && task.status !== 'done';
 
+  const getTaskPayload = (updatedFields: Partial<Task>) => {
+    return {
+      ...task,
+      ...updatedFields,
+      projectId: task.project.id,
+      assigneeIds: task.assignees.map(a => a.id),
+    }
+  }
+
   const handleStatusChange = (newStatus: TaskStatus) => {
-    updateTask({ ...task, status: newStatus });
+    updateTask(getTaskPayload({ status: newStatus }));
   };
 
   const handlePriorityChange = (newPriority: TaskPriority) => {
-    updateTask({ ...task, priority: newPriority });
+    updateTask(getTaskPayload({ priority: newPriority }));
   };
 
   const handleDateChange = (newDate: Date | undefined) => {
     if (newDate) {
-      updateTask({ ...task, dueDate: newDate.toISOString() });
+      updateTask(getTaskPayload({ dueDate: newDate.toISOString() }));
     }
   };
   
   const handleSubTaskToggle = (subTaskId: string) => {
     const newSubTasks = subTasks?.map(st => st.id === subTaskId ? {...st, completed: !st.completed} : st);
-    updateTask({...task, subTasks: newSubTasks});
+    updateTask(getTaskPayload({ subTasks: newSubTasks }));
   }
 
   const PriorityIcon = priorityIcons[priority];
