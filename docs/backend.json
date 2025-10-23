@@ -25,7 +25,7 @@
             "description": "The user's initials."
         }
       },
-      "required": ["name"]
+      "required": ["name", "email"]
     },
     "Team": {
       "title": "Team",
@@ -126,7 +126,7 @@
     }
   },
   "auth": {
-    "providers": []
+    "providers": ["password"]
   },
   "firestore": {
     "/teams/{teamId}": {
