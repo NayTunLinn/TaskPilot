@@ -16,38 +16,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSidebar } from './sidebar-provider';
 import { CreateTaskButton } from '../tasks/create-task-button';
 import Link from 'next/link';
-import { useAuth, useUser } from '@/firebase';
-import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
 
 export function AppHeader() {
   const { toggle, isMobile } = useSidebar();
-  const { user: currentUser, loading } = useUser();
-  const auth = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const handleLogout = async () => {
-    if (!auth) return;
-    try {
-      await signOut(auth);
-      toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
-      });
-      router.push('/login');
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to log out.',
-        variant: 'destructive',
-      });
-    }
-  };
   
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return '';
+    if (!name) return 'JD';
     const names = name.split(' ');
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase();
@@ -71,7 +45,7 @@ export function AppHeader() {
           />
         </div>
       </div>
-      {currentUser && <CreateTaskButton />}
+      <CreateTaskButton />
       <Button variant="ghost" size="icon" className="h-8 w-8">
         <Bell className="h-4 w-4" />
         <span className="sr-only">Notifications</span>
@@ -80,36 +54,21 @@ export function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={currentUser?.photoURL || ''} alt={currentUser?.displayName || ''} data-ai-hint="person portrait" />
-              <AvatarFallback>{getInitials(currentUser?.displayName)}</AvatarFallback>
+              <AvatarImage src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEwMzE4OTJ8MA&ixlib=rb-4.1.0&q=80&w=1080" alt="Jane Doe" data-ai-hint="person portrait" />
+              <AvatarFallback>{getInitials('Jane Doe')}</AvatarFallback>
             </Avatar>
             <span className="sr-only">User menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {currentUser ? (
-            <>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <Link href="/profile" passHref>
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-              </Link>
-              <Link href="/settings" passHref>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-              </Link>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-            </>
-          ) : (
-            <>
-              <Link href="/login" passHref>
-                <DropdownMenuItem>Login</DropdownMenuItem>
-              </Link>
-              <Link href="/signup" passHref>
-                <DropdownMenuItem>Sign Up</DropdownMenuItem>
-              </Link>
-            </>
-          )}
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <Link href="/profile" passHref>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+          </Link>
+          <Link href="/settings" passHref>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+          </Link>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

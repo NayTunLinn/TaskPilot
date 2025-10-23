@@ -1,53 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { useAuth } from '../provider';
+import type { User } from 'firebase/auth';
+import { users } from '@/lib/data';
 
-/**
- * A React hook that provides the current authenticated user.
- *
- * This hook manages the user's authentication state, returning the user object
- * when logged in and `null` when logged out. It also provides a `loading`
- * state to handle the initial authentication check.
- *
- * @returns An object containing the `user` and a `loading` boolean.
- *
- * @example
- * ```tsx
- * function UserProfile() {
- *   const { user, loading } = useUser();
- *
- *   if (loading) {
- *     return <div>Loading...</div>;
- *   }
- *
- *   if (!user) {
- *     return <div>Please sign in.</div>;
- *   }
- *
- *   return <div>Welcome, {user.displayName}!</div>;
- * }
- * ```
- */
+
+// This is a mock implementation of useUser since auth has been removed.
+// It returns a mock user.
 export function useUser() {
-  const auth = useAuth();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) {
-      setLoading(false);
-      return;
+    // Simulate fetching a user
+    const mockUser = {
+        uid: 'user-1',
+        displayName: users[0].name,
+        email: users[0].email,
+        photoURL: users[0].avatarUrl,
     }
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
+    setUser(mockUser);
+    setLoading(false);
+  }, []);
 
   return { user, loading };
 }

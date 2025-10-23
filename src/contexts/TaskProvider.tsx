@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { Task, TaskStatus, User, Project } from '@/lib/types';
 import { produce } from 'immer';
-import { useAuth, useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, doc, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 interface TaskContextType {
@@ -17,7 +17,6 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const firestore = useFirestore();
-  const { user: authUser } = useAuth();
 
   const tasksQuery = useMemo(() => {
     if (!firestore) return null;

@@ -23,7 +23,6 @@ import { useSidebar } from './sidebar-provider';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
-import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -112,9 +111,6 @@ export function AppSidebar() {
     'bg-gradient-to-b from-primary to-accent text-primary-foreground transition-all duration-300 ease-in-out',
     isCollapsed ? 'w-14' : 'w-56'
   );
-    const { user } = useUser();
-
-  if (!user) return null;
 
   if (isMobile) {
     return (

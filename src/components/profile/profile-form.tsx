@@ -15,9 +15,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useUser } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
 import { useState } from 'react';
 
 const profileFormSchema = z.object({
@@ -28,9 +25,11 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileForm() {
-  const { user } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
+    // Mock user data since auth is removed
+  const user = {
+    displayName: 'Jane Doe',
+    email: 'jane.d@example.com',
+  }
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -46,45 +45,15 @@ export function ProfileForm() {
     }
   });
 
-  const getInitials = (name: string) => {
-    const names = name.split(' ');
-    const initials = names.map(n => n[0]).join('');
-    return initials.toUpperCase();
-}
-
-
   async function onSubmit(data: ProfileFormValues) {
-    if (!user || !auth?.currentUser || !firestore) return;
-
     setLoading(true);
-    try {
-      // Update Firebase Auth profile
-      await updateProfile(auth.currentUser, {
-        displayName: data.name,
-      });
-
-      // Update Firestore user document
-      const userRef = doc(firestore, 'users', user.uid);
-      await setDoc(userRef, { 
-        name: data.name, 
-        email: data.email,
-        initials: getInitials(data.name),
-     }, { merge: true });
-
-      toast({
+    // Mock saving the data
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast({
         title: 'Profile Updated',
         description: 'Your profile has been successfully updated.',
-      });
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update profile. ' + error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+    });
+    setLoading(false);
   }
 
   return (

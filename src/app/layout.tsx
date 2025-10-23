@@ -1,7 +1,6 @@
 
 'use client';
 
-import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppHeader } from '@/components/layout/app-header';
@@ -10,33 +9,6 @@ import { SidebarProvider } from '@/components/layout/sidebar-provider';
 import { TaskProvider } from '@/contexts/TaskProvider';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { AuthGuard } from '@/components/auth/auth-guard';
-import { usePathname } from 'next/navigation';
-
-function MainContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
-
-  if (isAuthPage) {
-    return <>{children}</>;
-  }
-
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-1 flex-col">
-          <AppHeader />
-          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-        </div>
-      </div>
-    </SidebarProvider>
-  );
-}
-
-// Metadata can't be exported from a client component.
-// We can keep it in a separate server component or move it here if the whole file becomes client component.
-// For now, let's remove it from here to solve the immediate error. We can re-add it properly later if needed.
 
 export default function RootLayout({
   children,
@@ -64,9 +36,15 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <TaskProvider>
-                <AuthGuard>
-                    <MainContent>{children}</MainContent>
-                </AuthGuard>
+                <SidebarProvider>
+                  <div className="flex min-h-screen w-full">
+                    <AppSidebar />
+                    <div className="flex flex-1 flex-col">
+                      <AppHeader />
+                      <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+                    </div>
+                  </div>
+                </SidebarProvider>
             </TaskProvider>
           </FirebaseClientProvider>
           <Toaster />

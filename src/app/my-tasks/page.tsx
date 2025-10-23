@@ -3,13 +3,13 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTasks } from '@/contexts/TaskProvider';
-import { useUser } from '@/firebase';
 import { TaskCard } from '@/components/dashboard/task-card';
 import { TaskListView } from '@/components/tasks/task-list-view';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, List } from 'lucide-react';
 import type { Task, TaskPriority, TaskStatus } from '@/lib/types';
 import { isAfter, isBefore, parseISO } from 'date-fns';
+import { users } from '@/lib/data';
 
 type SortableField = 'title' | 'priority' | 'status' | 'dueDate';
 type SortDirection = 'asc' | 'desc';
@@ -19,14 +19,15 @@ const statusOrder: Record<TaskStatus, number> = { todo: 0, 'in-progress': 1, rev
 
 export default function MyTasksPage() {
   const { tasks } = useTasks();
-  const { user: currentUser } = useUser();
+  // Using a mock user since auth is removed
+  const currentUser = users[0];
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [sort, setSort] = useState<{ by: SortableField; dir: SortDirection }>({ by: 'dueDate', dir: 'asc' });
 
   const myTasks = useMemo(() => {
     if (!currentUser) return [];
     return tasks.filter(task =>
-      task.assignees.some(assignee => assignee.id === currentUser.uid)
+      task.assignees.some(assignee => assignee.id === currentUser.id)
     );
   }, [tasks, currentUser]);
   

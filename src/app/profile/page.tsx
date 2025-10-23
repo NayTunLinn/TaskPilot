@@ -11,27 +11,25 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/firebase';
 import { ProfileForm } from '@/components/profile/profile-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { users } from '@/lib/data';
 
 export default function ProfilePage() {
-  const { user: currentUser } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  // Using a mock user since auth is removed
+  const currentUser = {
+      displayName: 'Jane Doe',
+      email: 'jane.d@example.com',
+      photoURL: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEwMzE4OTJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+  }
+
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return '';
     const names = name.split(' ');
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase();
-  }
-
-  if (!currentUser) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p>Loading profile...</p>
-      </div>
-    );
   }
 
   return (
