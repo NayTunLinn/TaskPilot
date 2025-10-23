@@ -13,7 +13,7 @@ import { isSameDay, parseISO } from 'date-fns';
 import { TaskCard } from '@/components/dashboard/task-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut } from 'lucide-react';
+import { Expand, Shrink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CalendarPage() {
@@ -68,8 +68,8 @@ export default function CalendarPage() {
               onClick={() => handleZoom('out')}
               disabled={numberOfMonths === 3}
             >
-              <ZoomOut className="h-4 w-4" />
-              <span className="sr-only">Zoom out</span>
+              <Expand className="h-4 w-4" />
+              <span className="sr-only">Expand</span>
             </Button>
             <Button
               variant="outline"
@@ -77,8 +77,8 @@ export default function CalendarPage() {
               onClick={() => handleZoom('in')}
               disabled={numberOfMonths === 1}
             >
-              <ZoomIn className="h-4 w-4" />
-              <span className="sr-only">Zoom in</span>
+              <Shrink className="h-4 w-4" />
+              <span className="sr-only">Shrink</span>
             </Button>
           </div>
         </CardHeader>
